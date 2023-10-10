@@ -1,0 +1,29 @@
+import type {z, ZodSchema} from './deps.ts';
+import {entriesToObject} from './collect_entries.ts';
+
+export async function parseFormRequest<T extends ZodSchema>(
+  request: Request,
+  schema: T
+): Promise<z.infer<T>> {
+  const formData = await request.formData();
+  const record = entriesToObject(formData);
+  const result = await schema.safeParseAsync(record);
+  if (result.success === false) {
+    throw result as z.SafeParseError<T>;
+  }
+  const data = result.data as z.infer<T>;
+  return data;
+}
+
+export function parseFormData<T extends ZodSchema>(
+  formData: FormData,
+  schema: T
+): z.infer<T> {
+  const record = entriesToObject(formData);
+  const result = schema.safeParse(record);
+  if (result.success === false) {
+    throw result as z.SafeParseError<T>;
+  }
+  const data = result.data as z.infer<T>;
+  return data;
+}
