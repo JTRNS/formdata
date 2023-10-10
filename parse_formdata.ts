@@ -1,12 +1,12 @@
 import type {z, ZodSchema} from './deps.ts';
-import {entriesToObject} from './collect_entries.ts';
+import {entriesToObject} from './entries_to_object.ts';
+import {readFormRequest} from './read_form_req.ts';
 
 export async function parseFormRequest<T extends ZodSchema>(
   request: Request,
   schema: T
 ): Promise<z.infer<T>> {
-  const formData = await request.formData();
-  const record = entriesToObject(formData);
+  const record = await readFormRequest(request);
   const result = await schema.safeParseAsync(record);
   if (result.success === false) {
     throw result as z.SafeParseError<T>;
